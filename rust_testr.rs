@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::collections::HashMap;
 
 fn pattern_count(text: &str, pattern: &str) -> usize {
     let mut count = 0;
@@ -87,7 +88,7 @@ fn reverse_complement(text: &str)-> String{
 }
 
 
-fn hamming_distance(text: &str, pattern: &str) -> Vec<usize>  {
+fn hamming_distances(text: &str, pattern: &str) -> Vec<usize>  {
     let mut distances: Vec<usize> = Vec::new();
     let positions = pattern_count_positions(text,pattern);
     let mut before = positions[0];
@@ -97,14 +98,119 @@ fn hamming_distance(text: &str, pattern: &str) -> Vec<usize>  {
     }
     distances
 }
+//APPROXIMATEPATTERNCOUNT
+
+fn hamming_distance(str1: &str, str2: &str) -> usize {
+    let mut mismatch = 0;
+
+    for (char1, char2) in str2.chars().zip(str1.chars()) {
+        if char1 != char2 {
+            mismatch += 1;
+        }
+    }
+    mismatch
+}
+
+fn approximate_pattern_matching(text: &str, pattern: &str, d: usize) -> Vec<usize> {
+    let mut starting_positions = Vec::new();
+
+    for i in 0..=text.len() - pattern.len() {
+        if hamming_distance(&text[i..i + pattern.len()],&pattern) <= d {
+            starting_positions.push(i);
+        }
+    }
+    starting_positions
+}
+
+fn approximate_pattern_count(pattern: &str, text: &str, d: usize) -> usize {
+    let mut count = 0;
+
+    for i in 0..=text.len() - pattern.len() {
+        if hamming_distance(&text[i..i + pattern.len()],&pattern) <= d {
+            count += 1;
+        }
+    }
+    count
+}
+
+
+
+fn clump_finding(genome: &str, k: usize, l: usize, t: usize) -> HashSet<String> {
+    let mut clumps: HashSet<String> = HashSet::new();
+    
+    for i in 0..genome.len() - l + 1 {
+        let window = &genome[i..i+l];
+        let mut kmer_counts: HashMap<String, usize> = HashMap::new();
+        
+        for j in 0..window.len() - k + 1 {
+            let kmer = &window[j..j+k];
+            *kmer_counts.entry(kmer.to_string()).or_insert(0) += 1;
+        }
+        
+        for (kmer, count) in kmer_counts.iter() {
+            if *count >= t {
+                clumps.insert(kmer.clone());
+            }
+        }
+    }
+    
+    clumps
+}
+fn min_skew(text: &str) -> (i32,usize){
+    let mut min=std::i32::MAX;
+    let mut count:i32=0;
+    let mut pos=0;
+    let mut min_pos=0;
+    let mut c;
+    for i in text.chars() {
+        c=i.to_lowercase().next().unwrap();
+        if c=='g'{
+            count+=1;
+        }else if c=='c'{
+            count-=1;
+        }
+        if count<min{
+            min=count;
+            min_pos=pos;
+        }
+        pos+=1;
+    }
+    return (min,min_pos);   
+}
+
 
 fn main() {
-    let text = "actgactcccaccccc";
-    let pattern = "a";
-    let pattern_positions=hamming_distance(text,pattern);
+
+    let text = "AACAAGCATAAACATTAAAGAG";
+    let pattern = "AAAAA";
+    let d = 2;
+
+    println!(
+        "Approximate pattern count: {}",
+        approximate_pattern_count(pattern, text, d)
+    );
+
+    println!(
+        "Approximate pattern matching starting positions: {:?}",
+        approximate_pattern_matching(text, pattern, d)
+    );
+    let minskew=min_skew("CATGGGCATCGGCCATACGCC");
+    println!("{} {}",minskew.0,minskew.1 );
+    let genome = "CGGACTCGACAGATGTGAAGAACGACAATGTGAAGACTCGACACGACAGAGTGAAGAGAAGAG";
+    let k = 5;
+    let l = 50;
+    let t = 4;
+    
+    let result = clump_finding(genome, k, l, t);
+    println!("{:?}", result);
+
+    let text = "AACAAGCATAAACATTAAAGAG";
+    let pattern = "AAAA";
+    println!("{}",approximate_pattern_count(text,pattern,2));
+    let pattern_positions=hamming_distances(text,pattern);
     //println!("pattern_count_positions: {}",;
     for pos in pattern_positions {
-        println!("{}", pos);
+        println!("patterns {}", pos);
     }
     println!("reverse: {}",reverse_complement(text));
     let result = frequent_words(text, 3);
