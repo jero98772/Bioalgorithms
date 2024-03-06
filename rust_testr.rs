@@ -102,7 +102,6 @@ fn hamming_distances(text: &str, pattern: &str) -> Vec<usize>  {
 
 fn hamming_distance(str1: &str, str2: &str) -> usize {
     let mut mismatch = 0;
-
     for (char1, char2) in str2.chars().zip(str1.chars()) {
         if char1 != char2 {
             mismatch += 1;
@@ -179,7 +178,143 @@ fn min_skew(text: &str) -> (i32,usize){
 }
 
 
+
+fn frequent_words_mismatch(dna: &str, k: usize, n: usize) -> String {
+    let mut counts = HashMap::new();
+    for i in 0..=(dna.len() - k) {
+        let kmer = &dna[i..(i + k)];
+        *counts.entry(kmer.to_string()).or_insert(0) += 1;
+    }
+
+    let mut update_counts = HashMap::new();
+    for (a, _) in &counts {
+        let mut c = 0;
+        for (b, _) in &counts {
+            if approx(a, b, k, n) {
+                c += counts.get(b).unwrap_or(&0);
+            }
+        }
+        update_counts.insert(a.clone(), c);
+    }
+
+    let frequent = *update_counts.values().max().unwrap_or(&0);
+    let mut ans = Vec::new();
+    for (k, v) in &update_counts {
+        if *v == frequent {
+            ans.push(k.clone());
+        }
+    }
+
+    ans.join(" ")
+}
+
+fn approx(a: &str, b: &str, k: usize, n: usize) -> bool {
+    let mut mismatch = 0;
+    for (ca, cb) in a.chars().zip(b.chars()) {
+        if ca != cb {
+            mismatch += 1;
+        }
+        if mismatch > n {
+            return false;
+        }
+    }
+    true
+}
+
+fn reverse_pattern(pattern: &str) -> String {
+    let chain = pattern.to_lowercase();
+    //let chain = "ATGATCAAG";
+    let mut new_chain = Vec::new();
+    for char in chain.chars().rev() {
+        match char.to_ascii_lowercase() {
+            'a' => new_chain.push('t'),
+            't' => new_chain.push('a'),
+            'g' => new_chain.push('c'),
+            'c' => new_chain.push('g'),
+            _ => {}
+        }
+    }
+    new_chain.iter().collect::<String>()
+}
+
+fn neighbor(pattern: &str, mismatch: usize, words: &mut HashSet<String>) {
+    if mismatch == 0 {
+        words.insert(pattern.to_string());
+    } else {
+        let bases = ['A', 'T', 'C', 'G'];
+        for (i, _) in pattern.chars().enumerate() {
+            for &base in &bases {
+                let mut new_pattern = pattern.to_string();
+                new_pattern.replace_range(i..=i, &base.to_string());
+                if mismatch <= 1 {
+                    words.insert(new_pattern.clone());
+                } else {
+                    neighbor(&new_pattern, mismatch - 1, words);
+                }
+            }
+        }
+    }
+}
+
+fn hamming_distance2(s1: &str, s2: &str) -> usize {
+    s1.chars()
+        .zip(s2.chars())
+        .filter(|&(c1, c2)| c1 != c2)
+        .count()
+}
+
+fn find_most_frequent_pattern(text: &str, k: usize, d: usize) -> HashSet<String> {
+    let mut all_frequent_words = HashMap::new();
+    for i in 0..=(text.len() - k) {
+        let mut frequent_words = HashSet::new();
+        neighbor(&text[i..(i + k)], d, &mut frequent_words);
+
+        for word in frequent_words {
+            *all_frequent_words.entry(word).or_insert(0) += 1;
+        }
+    }
+
+    let mut to_update = Vec::new();
+    for (t, _) in &all_frequent_words {
+        let reverse_k = reverse_pattern(t);
+        for i in 0..=(text.len() - k) {
+            if hamming_distance(&text[i..(i + k)], &reverse_k) <= d {
+                to_update.push(t.to_string());
+                break;
+            }
+        }
+    }
+
+    for t in to_update {
+        *all_frequent_words.entry(t).or_insert(0);
+    }
+
+    let mut result = HashSet::new();
+    let max_value = *all_frequent_words.values().max().unwrap_or(&0);
+    for (t, &freq) in &all_frequent_words {
+        if freq == max_value {
+            result.insert(t.to_string());
+            result.insert(reverse_pattern(t));
+        }
+    }
+
+    result
+}
+
+
 fn main() {
+
+
+    let find_most_frequenr_pattern = find_most_frequent_pattern("ATGATCAAG",3,1);
+    for i in find_most_frequenr_pattern {
+        println!("patterns {}", i);
+    }
+    /*
+    //println!("{}",);
+
+    println!("{}",reverse_pattern("AG"));
+
+    println!("{}",frequent_words_mismatch("ACGTTGCATGTCGCATGATGCATGAGAGCT",4,1));
 
     let text = "AACAAGCATAAACATTAAAGAG";
     let pattern = "AAAAA";
@@ -219,4 +354,5 @@ fn main() {
     for pattern in result {
         println!("{}", pattern);
     }
+    */
 }

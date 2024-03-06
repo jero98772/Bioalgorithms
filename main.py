@@ -1,5 +1,7 @@
 import bioinformatics
 
+print(bioinformatics.reverse_complement("AAAAAGCATAAACATTAAAGAG"))
+print(bioinformatics.frequent_words_mismatch("ACGTTGCATGTCGCATGATGCATGAGAGCT",4,1))
 print(bioinformatics.approximate_pattern_matching("AAAAAGCATAAACATTAAAGAG","AAAAA",0))
 print(bioinformatics.approximate_pattern_count("AAAAAGCATAAACATTAAAGAG","AAAAA",0))
 print(bioinformatics.min_skew("CATGGGCATCGGCCATACGCC"))
