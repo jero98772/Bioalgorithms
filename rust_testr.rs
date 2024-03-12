@@ -301,10 +301,31 @@ fn find_most_frequent_pattern(text: &str, k: usize, d: usize) -> HashSet<String>
     result
 }
 
+const BASES: &str = "ACGT";
+
+fn generate_frequency_array(text: &str, k: usize) -> Vec<usize> {
+    let mut frequencies = vec![0; 4_usize.pow(k as u32)];
+    for i in 0..=text.len() - k {
+        frequencies[pattern_to_number(&text[i..i + k])] += 1;
+    }
+    frequencies
+}
+
+fn pattern_to_number(kmer: &str) -> usize {
+    let mut n = 0;
+    for letter in kmer.chars() {
+        n *= 4;
+        n += BASES.find(letter).unwrap();
+    }
+    n
+}
 
 fn main() {
 
-
+    let text = "AAACAGATCACCCGCTGAGCGGGTTATCTGTT";
+    let k = 4;
+    let frequency_array = generate_frequency_array(text, k);
+    println!("{:?}", frequency_array);
     let find_most_frequenr_pattern = find_most_frequent_pattern("ATGATCAAG",3,1);
     for i in find_most_frequenr_pattern {
         println!("patterns {}", i);

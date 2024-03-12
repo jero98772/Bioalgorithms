@@ -2,6 +2,17 @@ use pyo3::prelude::*;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
+const BASES: &str = "ACGT";
+
+
+fn pattern_to_number(kmer: &str) -> usize {
+    let mut n = 0;
+    for letter in kmer.chars() {
+        n *= 4;
+        n += BASES.find(letter).unwrap();
+    }
+    n
+}
 fn reverse_pattern(pattern: &str) -> String {
     let chain = pattern.to_lowercase();
     //let chain = "ATGATCAAG";
@@ -283,9 +294,20 @@ fn reverse_complement(pattern: &str) -> PyResult<String> {
     Ok(new_chain.iter().collect::<String>())
 }
 
+#[pyfunction]
+fn generate_frequency_array(text: &str, k: usize) -> PyResult<Vec<usize>> {
+    let mut frequencies = vec![0; 4_usize.pow(k as u32)];
+    for i in 0..=text.len() - k {
+        frequencies[pattern_to_number(&text[i..i + k])] += 1;
+    }
+    Ok(frequencies)
+}
+
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(generate_frequency_array, m)?)?;
     m.add_function(wrap_pyfunction!(reverse_complement, m)?)?;
     m.add_function(wrap_pyfunction!(frequent_words_mismatch, m)?)?;
     m.add_function(wrap_pyfunction!(approximate_pattern_matching, m)?)?;
