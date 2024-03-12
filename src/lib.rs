@@ -1,75 +1,11 @@
+mod libs2;
+
 use pyo3::prelude::*;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
-const BASES: &str = "ACGT";
-
-
-fn pattern_to_number(kmer: &str) -> usize {
-    let mut n = 0;
-    for letter in kmer.chars() {
-        n *= 4;
-        n += BASES.find(letter).unwrap();
-    }
-    n
-}
-fn reverse_pattern(pattern: &str) -> String {
-    let chain = pattern.to_lowercase();
-    //let chain = "ATGATCAAG";
-    let mut new_chain = Vec::new();
-    for char in chain.chars().rev() {
-        match char.to_ascii_lowercase() {
-            'a' => new_chain.push('t'),
-            't' => new_chain.push('a'),
-            'g' => new_chain.push('c'),
-            'c' => new_chain.push('g'),
-            _ => {}
-        }
-    }
-    new_chain.iter().collect::<String>()
-}
-
-fn pattern_count_frequent_words(text: &str, pattern: &str) -> usize {
-    let mut count = 0;
-    let pattern_size = pattern.len();
-
-    for i in 0..text.len() {
-        let mut pattern_size = pattern_size;
-        for j in 0..pattern.len() {
-            if j < pattern.len() && i + j < text.len() && text.chars().nth(i + j).unwrap() == pattern.chars().nth(j).unwrap() {
-                pattern_size -= 1;
-            } else {
-                break;
-            }
-            if pattern_size == 0 {
-                count += 1;
-            }
-        }
-    }
-    count
-}
-
-fn pattern_count_positions_rust(text: &str, pattern: &str) -> Vec<usize>  {
-    //let mut count = 0;
-    let mut positions: Vec<usize> = Vec::new();
-    let pattern_size = pattern.len();
-
-    for i in 0..text.len() {
-        let mut pattern_size = pattern_size;
-        for j in 0..pattern.len() {
-            if j < pattern.len() && i + j < text.len() && text.chars().nth(i + j).unwrap() == pattern.chars().nth(j).unwrap() {
-                pattern_size -= 1;
-            } else {
-                break;
-            }
-            if pattern_size == 0 {
-                positions.push(i);
-                //count += 1;
-            }
-        }
-    }
-    positions
-}
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx};
+use libs2::functions::{BASES};
 
 #[pyfunction]
 fn pattern_count(text: &str, pattern: &str) -> PyResult<i32> {
@@ -197,16 +133,6 @@ fn min_skew(text: &str) -> PyResult<(i32,usize)>{
     return Ok((min,min_pos));   
 }
 
-fn hamming_distance(str1: &str, str2: &str) -> usize {
-    let mut mismatch = 0;
-
-    for (char1, char2) in str2.chars().zip(str1.chars()) {
-        if char1 != char2 {
-            mismatch += 1;
-        }
-    }
-    mismatch
-}
 
 #[pyfunction]
 fn approximate_pattern_matching(text: &str, pattern: &str, d: usize) -> PyResult<Vec<usize>> {
@@ -230,19 +156,6 @@ fn approximate_pattern_count(text: &str,pattern: &str, d: usize) -> PyResult<usi
         }
     }
     Ok(count)
-}
-
-fn approx(a: &str, b: &str, k: usize, n: usize) -> bool {
-    let mut mismatch = 0;
-    for (ca, cb) in a.chars().zip(b.chars()) {
-        if ca != cb {
-            mismatch += 1;
-        }
-        if mismatch > n {
-            return false;
-        }
-    }
-    true
 }
 
 #[pyfunction]
@@ -275,8 +188,6 @@ fn frequent_words_mismatch(dna: &str, k: usize, n: usize) -> PyResult<String> {
     Ok(ans.join(" "))
 }
 
-
-
 #[pyfunction]
 fn reverse_complement(pattern: &str) -> PyResult<String> {
     let chain = pattern.to_lowercase();
@@ -298,15 +209,34 @@ fn reverse_complement(pattern: &str) -> PyResult<String> {
 fn generate_frequency_array(text: &str, k: usize) -> PyResult<Vec<usize>> {
     let mut frequencies = vec![0; 4_usize.pow(k as u32)];
     for i in 0..=text.len() - k {
-        frequencies[pattern_to_number(&text[i..i + k])] += 1;
+        frequencies[pattern_to_number_rust(&text[i..i + k])] += 1;
     }
     Ok(frequencies)
 }
-
+#[pyfunction]
+fn pattern_to_number(kmer: &str) -> PyResult<usize> {
+    let mut n = 0;
+    for letter in kmer.chars() {
+        n *= 4;
+        n += BASES.find(letter).unwrap();
+    }
+    Ok(n)
+}
+#[pyfunction]
+fn number_to_pattern(mut n: usize, k: usize) -> PyResult<String> {
+    let mut pattern = String::new();
+    for _ in 0..k {
+        pattern.push(BASES.chars().nth(n % 4).unwrap());
+        n /= 4;
+    }
+    Ok(pattern.chars().rev().collect::<String>())
+}
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(number_to_pattern, m)?)?;
+    m.add_function(wrap_pyfunction!(pattern_to_number, m)?)?;
     m.add_function(wrap_pyfunction!(generate_frequency_array, m)?)?;
     m.add_function(wrap_pyfunction!(reverse_complement, m)?)?;
     m.add_function(wrap_pyfunction!(frequent_words_mismatch, m)?)?;

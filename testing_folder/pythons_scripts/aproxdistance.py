@@ -1,3 +1,5 @@
+import numpy as np
+
 def HAMMINGDISTANCE(pattern1, pattern2):
     # Assuming both patterns are of equal length
     return sum(1 for i in range(len(pattern1)) if pattern1[i] != pattern2[i])
@@ -113,6 +115,23 @@ def FindMostFrequentPattern(text, k, d):
     for i in result:
         print(i)
         
+
+def patternToNumber(kmer):
+    '''BA1L Implement PatternToNumber'''
+    n=0
+    for letter in kmer:
+        n*=4
+        n+=bases.find(letter)
+    return n
+def generateFrequencyArray(text,k):
+
+    frequencies=np.zeros((4**k))
+    for i in range(len(text)-k+1):
+        frequencies[patternToNumber(text[i:i+k])] += 1
+    return frequencies
+
+#faster frecuency array
+
 if __name__ == "__main__":
     # text = 'ACGTTGCATGTCGCATGATGCATGAGAGCT'
     k, d = 4, 1

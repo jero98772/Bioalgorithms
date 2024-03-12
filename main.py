@@ -1,5 +1,7 @@
 import bioinformatics
 
+print(bioinformatics.pattern_to_number("CC"))
+print(bioinformatics.number_to_pattern(5,2))
 print(bioinformatics.generate_frequency_array("AAACAGATCACCCGCTGAGCGGGTTATCTGTT",1))
 print(bioinformatics.reverse_complement("AAAAAGCATAAACATTAAAGAG"))
 print(bioinformatics.frequent_words_mismatch("ACGTTGCATGTCGCATGATGCATGAGAGCT",4,1))
