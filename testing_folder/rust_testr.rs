@@ -370,8 +370,56 @@ fn enumerate_motifs(dna: &[&str], k: usize, d: usize) -> Vec<String> {
 }
 
 
-fn main() {
+fn d(pattern: &str, dna: &[&str]) -> usize {
+    dna.iter()
+        .map(|dna_seq| {
+            (0..dna_seq.len() - pattern.len() + 1)
+                .map(|i| hamming_distance(pattern, &dna_seq[i..i + pattern.len()]))
+                .min()
+                .unwrap_or(0)
+        })
+        .sum()
+}
 
+fn median_string(dna: &[&str], k: usize) -> String {
+    let mut distance = usize::MAX;
+    let mut median = String::new();
+
+    for pattern in product(&['A', 'C', 'G', 'T'], k) {
+        let pattern: String = pattern.iter().collect();
+        let pattern = &pattern;
+
+        if distance > d(pattern, dna) {
+            distance = d(pattern, dna);
+            median = pattern.to_string();
+        }
+    }
+
+    median
+}
+
+fn product<T: Clone>(choices: &[&str], repeat: usize) -> Vec<Vec<T>> {
+    if repeat == 0 {
+        vec![vec![]]
+    } else {
+        let base = product(choices, repeat - 1);
+        let mut result = Vec::new();
+        for c in choices {
+            for p in base.iter() {
+                let mut v = p.clone();
+                v.push(c.clone());
+                result.push(v);
+            }
+        }
+        result
+    }
+}
+
+
+fn main() {
+    let dna = vec!["AAATTGACGCAT","GACGACCACGTT","CGTCAGCGCCTG","GCTGAGCACCGG","AGTACGGGACAG"];
+    let k = 6;
+    println!("Median string: {}", median_string(&dna, k));
     let dna = vec!["ATTTGGC","TGCCTTA","CGGTATC","GAAAATT"];
     let k = 3;
     let d = 1;

@@ -3,9 +3,8 @@ mod libs2;
 use pyo3::prelude::*;
 use std::collections::HashSet;
 use std::collections::HashMap;
-use pyo3::types::{PyList,PyAny};
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -233,8 +232,6 @@ fn number_to_pattern(mut n: usize, k: usize) -> PyResult<String> {
     Ok(pattern.chars().rev().collect::<String>())
 }
 
-
-
 #[pyfunction]
 fn enumerate_motifs(_py: Python, dna: Vec<&str>, k: usize, d: usize) -> PyResult<Vec<String>> {
     let mut patterns = HashSet::new();
@@ -261,9 +258,28 @@ fn enumerate_motifs(_py: Python, dna: Vec<&str>, k: usize, d: usize) -> PyResult
     Ok(patterns.into_iter().collect())
 }
 
+#[pyfunction]
+fn median_string(_py: Python, dna: Vec<&str>, k: usize) -> PyResult<String> {
+    let mut distance = usize::MAX;
+    let mut median = String::new();
+
+    for pattern in product(&['A', 'C', 'G', 'T'], k) {
+        let pattern: String = pattern.iter().collect();
+        let pattern = &pattern;
+
+        if distance > d(pattern, &dna) {
+            distance = d(pattern, &dna);
+            median = pattern.to_string();
+        }
+    }
+
+    Ok(median)
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(median_string, m)?)?;
     m.add_function(wrap_pyfunction!(enumerate_motifs, m)?)?;
     m.add_function(wrap_pyfunction!(number_to_pattern, m)?)?;
     m.add_function(wrap_pyfunction!(pattern_to_number, m)?)?;

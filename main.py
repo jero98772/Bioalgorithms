@@ -1,5 +1,6 @@
 import bioinformatics
 
+print(bioinformatics.median_string(['AAATTGACGCAT','GACGACCACGTT','CGTCAGCGCCTG''GCTGAGCACCGG','AGTACGGGACAG'],6))
 print(bioinformatics.enumerate_motifs(["ATTTGGC","TGCCTTA","CGGTATC","GAAAATT"],3,1))
 print(bioinformatics.pattern_to_number("CC"))
 print(bioinformatics.number_to_pattern(5,2))

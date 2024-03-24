@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+
 pub mod functions {
     use std::collections::HashSet;
 
@@ -66,7 +66,7 @@ pub mod functions {
     }
 
 
-    pub fn approx(a: &str, b: &str, k: usize, n: usize) -> bool {
+    pub fn approx(a: &str, b: &str, _k: usize, n: usize) -> bool {
         let mut mismatch = 0;
         for (ca, cb) in a.chars().zip(b.chars()) {
             if ca != cb {
@@ -117,9 +117,35 @@ pub mod functions {
             }
         }
     }
+    pub fn d(pattern: &str, dna: &[&str]) -> usize {
+        dna.iter()
+            .map(|dna_seq| {
+                (0..dna_seq.len() - pattern.len() + 1)
+                    .map(|i| hamming_distance(pattern, &dna_seq[i..i + pattern.len()]))
+                    .min()
+                    .unwrap_or(0)
+            })
+            .sum()
+    }
+
+    pub fn product<T: Clone>(choices: &[T], repeat: usize) -> Vec<Vec<T>> {
+        if repeat == 0 {
+            vec![vec![]]
+        } else {
+            let base = product(choices, repeat - 1);
+            let mut result = Vec::new();
+            for c in choices {
+                for p in base.iter() {
+                    let mut v = p.clone();
+                    v.push(c.clone());
+                    result.push(v);
+                }
+            }
+            result
+        }
+    }
 
 
 }
-
 
 
