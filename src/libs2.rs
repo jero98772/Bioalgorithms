@@ -1,5 +1,6 @@
-
+use std::collections::HashSet;
 pub mod functions {
+    use std::collections::HashSet;
 
     pub const BASES: &str = "ACGT";
     pub fn pattern_to_number_rust(kmer: &str) -> usize {
@@ -93,5 +94,32 @@ pub mod functions {
             }
             new_chain.iter().collect::<String>()
         }
+    pub fn generate_kmer_neighbors(pattern: &str, d: usize) -> HashSet<String> {
+        let alphabet = ['A', 'C', 'G', 'T'];
+        let mut neighbors = HashSet::new();
+        generate_neighbors_rust(pattern.as_bytes(), d, &alphabet, &mut neighbors);
+        neighbors
+    }
+
+    pub fn generate_neighbors_rust(pattern: &[u8], d: usize, alphabet: &[char], neighbors: &mut HashSet<String>) {
+        if d == 0 {
+            neighbors.insert(String::from_utf8_lossy(pattern).to_string());
+            return;
+        }
+        for i in 0..pattern.len() {
+            let original = pattern[i];
+            for &ch in alphabet {
+                if ch as u8 != original {
+                    let mut mutated_pattern = pattern.to_vec();
+                    mutated_pattern[i] = ch as u8;
+                    generate_neighbors_rust(&mutated_pattern, d - 1, alphabet, neighbors);
+                }
+            }
+        }
+    }
+
 
 }
+
+
+

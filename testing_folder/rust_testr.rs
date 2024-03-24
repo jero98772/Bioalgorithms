@@ -256,12 +256,7 @@ fn neighbor(pattern: &str, mismatch: usize, words: &mut HashSet<String>) {
     }
 }
 
-fn hamming_distance2(s1: &str, s2: &str) -> usize {
-    s1.chars()
-        .zip(s2.chars())
-        .filter(|&(c1, c2)| c1 != c2)
-        .count()
-}
+
 
 fn find_most_frequent_pattern(text: &str, k: usize, d: usize) -> HashSet<String> {
     let mut all_frequent_words = HashMap::new();
@@ -320,7 +315,68 @@ fn pattern_to_number(kmer: &str) -> usize {
     n
 }
 
+
+fn hamming_distance2(pattern1: &str, pattern2: &str) -> usize {
+    pattern1.chars().zip(pattern2.chars()).filter(|(c1, c2)| c1 != c2).count()
+}
+
+fn generate_kmer_neighbors(pattern: &str, d: usize) -> HashSet<String> {
+    let alphabet = ['A', 'C', 'G', 'T'];
+    let mut neighbors = HashSet::new();
+    generate_neighbors(pattern.as_bytes(), d, &alphabet, &mut neighbors);
+    neighbors
+}
+
+fn generate_neighbors(pattern: &[u8], d: usize, alphabet: &[char], neighbors: &mut HashSet<String>) {
+    if d == 0 {
+        neighbors.insert(String::from_utf8_lossy(pattern).to_string());
+        return;
+    }
+    for i in 0..pattern.len() {
+        let original = pattern[i];
+        for &ch in alphabet {
+            if ch as u8 != original {
+                let mut mutated_pattern = pattern.to_vec();
+                mutated_pattern[i] = ch as u8;
+                generate_neighbors(&mutated_pattern, d - 1, alphabet, neighbors);
+            }
+        }
+    }
+}
+
+fn enumerate_motifs(dna: &[&str], k: usize, d: usize) -> Vec<String> {
+    let mut patterns = HashSet::new();
+    for dna_string in dna {
+        for i in 0..=dna_string.len() - k {
+            let kmer = &dna_string[i..i + k];
+            let neighbors = generate_kmer_neighbors(kmer, d);
+            for neighbor in &neighbors {
+                let mut found_in_all = true;
+                for dna_string2 in dna {
+                    if (0..=dna_string2.len() - k).all(|j| {
+                        (0..k).all(|_l| hamming_distance2(&neighbor, &dna_string2[j..j + k]) > d)
+                    }) {
+                        found_in_all = false;
+                        break;
+                    }
+                }
+                if found_in_all {
+                    patterns.insert(neighbor.clone());
+                }
+            }
+        }
+    }
+    patterns.into_iter().collect()
+}
+
+
 fn main() {
+
+    let dna = vec!["ATTTGGC","TGCCTTA","CGGTATC","GAAAATT"];
+    let k = 3;
+    let d = 1;
+    let motifs = enumerate_motifs(&dna, k, d);
+    println!("{:?}", motifs);
 
     let text = "AAACAGATCACCCGCTGAGCGGGTTATCTGTT";
     let k = 4;

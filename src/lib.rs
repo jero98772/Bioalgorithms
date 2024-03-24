@@ -3,8 +3,9 @@ mod libs2;
 use pyo3::prelude::*;
 use std::collections::HashSet;
 use std::collections::HashMap;
+use pyo3::types::{PyList,PyAny};
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -232,9 +233,38 @@ fn number_to_pattern(mut n: usize, k: usize) -> PyResult<String> {
     Ok(pattern.chars().rev().collect::<String>())
 }
 
+
+
+#[pyfunction]
+fn enumerate_motifs(_py: Python, dna: Vec<&str>, k: usize, d: usize) -> PyResult<Vec<String>> {
+    let mut patterns = HashSet::new();
+    for dna_string in &dna {
+        for i in 0..=dna_string.len() - k {
+            let kmer = &dna_string[i..i + k];
+            let neighbors = generate_kmer_neighbors(kmer, d);
+            for neighbor in &neighbors {
+                let mut found_in_all = true;
+                for dna_string2 in &dna {
+                    if (0..=dna_string2.len() - k).all(|j| {
+                        (0..k).all(|_l| hamming_distance(&neighbor, &dna_string2[j..j + k]) > d)
+                    }) {
+                        found_in_all = false;
+                        break;
+                    }
+                }
+                if found_in_all {
+                    patterns.insert(neighbor.clone());
+                }
+            }
+        }
+    }
+    Ok(patterns.into_iter().collect())
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(enumerate_motifs, m)?)?;
     m.add_function(wrap_pyfunction!(number_to_pattern, m)?)?;
     m.add_function(wrap_pyfunction!(pattern_to_number, m)?)?;
     m.add_function(wrap_pyfunction!(generate_frequency_array, m)?)?;
