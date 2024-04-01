@@ -144,8 +144,64 @@ pub mod functions {
             result
         }
     }
+    pub fn log_prob(kmer: &str, profile: &[Vec<f64>]) -> f64 {
+        let mut sum = 0.0;
+        for (i, base) in kmer.chars().enumerate() {
+            sum += profile[BASES.find(base).unwrap()][i].ln();
+        }
+        sum
+    }
+    pub fn most_probable_rust( text: &str, n: usize, profile: Vec<Vec<f64>>) -> String {
+        let mut max_prob = f64::NEG_INFINITY;
+        let mut most_probable_kmer = String::new();
+        for i in 0..=(text.len() - n) {
+            let kmer = &text[i..(i + n)];
+            let prob = log_prob(kmer, &profile);
+            if prob > max_prob {
+                max_prob = prob;
+                most_probable_kmer = kmer.to_string();
+            }
+        }
 
+        most_probable_kmer
+    }
+    pub fn count_occurrences_of_bases(motifs: &[String], bases: &str, k: usize, pseudo_counts: bool) -> Vec<Vec<i32>> {
+        let mut matrix = vec![vec![1; k]; bases.len()];
+        if !pseudo_counts {
+            matrix.iter_mut().for_each(|row| {
+                row.iter_mut().for_each(|elem| *elem = 0);
+            });
+        }
 
+        for kmer in motifs {
+            for (j, &base) in kmer.as_bytes().iter().enumerate() {
+                let i = bases.bytes().position(|x| x == base).unwrap();
+                matrix[i][j] += 1;
+            }
+        }
+        matrix
+    }
+
+    pub fn calculate_profile_matrix(motifs: &[String], bases: &str, k: usize, pseudo_counts: bool) -> Vec<Vec<f64>> {
+        let matrix = count_occurrences_of_bases(motifs, bases, k, pseudo_counts);
+        let total = motifs.len() as f64;
+        matrix.iter().map(|row| {
+            row.iter().map(|&count| count as f64 / total).collect()
+        }).collect()
+    }
+
+    pub fn score_mofit_greddy(motifs: &[String], bases: &str, k: usize, pseudo_counts: bool) -> usize {
+        let matrix = count_occurrences_of_bases(motifs, bases, k, pseudo_counts);
+        let mut total = 0;
+        for j in 0..k {
+            let mut m = 0;
+            for i in 0..bases.len() {
+                if m < matrix[i][j] {
+                    m = matrix[i][j];
+                }
+            }
+            total += bases.len() - m as usize;
+        }
+        total
+    }
 }
-
-

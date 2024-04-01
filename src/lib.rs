@@ -1,10 +1,12 @@
 mod libs2;
 
 use pyo3::prelude::*;
+use pyo3::wrap_pyfunction;
+
 use std::collections::HashSet;
 use std::collections::HashMap;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,count_occurrences_of_bases,calculate_profile_matrix,score_mofit_greddy};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -276,9 +278,48 @@ fn median_string(_py: Python, dna: Vec<&str>, k: usize) -> PyResult<String> {
     Ok(median)
 }
 
-/// A Python module implemented in Rust.
+
+#[pyfunction]
+fn most_probable(py: Python, text: &str, n: usize, profile: Vec<Vec<f64>>) -> PyResult<String> {
+    let mut max_prob = f64::NEG_INFINITY;
+    let mut most_probable_kmer = String::new();
+    for i in 0..=(text.len() - n) {
+        let kmer = &text[i..(i + n)];
+        let prob = log_prob(kmer, &profile);
+        if prob > max_prob {
+            max_prob = prob;
+            most_probable_kmer = kmer.to_string();
+        }
+    }
+
+    Ok(most_probable_kmer)
+}
+#[pyfunction]
+fn greedy_motif_search(py: Python, k: usize, t: usize, dna: Vec<String>, pseudo_counts: Option<bool>) -> PyResult<Vec<String>> {
+    let pseudo_counts = match pseudo_counts {
+        Some(value) => value,
+        None => false,
+    };
+
+    let mut best_motifs = dna.iter().map(|genome| genome.chars().take(k).collect()).collect::<Vec<String>>();
+    for motif in dna[0].chars().take(dna[0].len() - k + 1) {
+        let mut motifs = vec![motif.to_string()];
+        for i in 1..t {
+            motifs.push(most_probable_rust(&dna[i], k, calculate_profile_matrix(&motifs, BASES, k, pseudo_counts)));
+        }
+        if score_mofit_greddy(&motifs, BASES, k, pseudo_counts) < score_mofit_greddy(&best_motifs, BASES, k, pseudo_counts) {
+            best_motifs = motifs;
+        }
+    }
+
+    Ok(best_motifs)
+}
+
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(greedy_motif_search, m)?)?;
+    m.add_function(wrap_pyfunction!(most_probable, m)?)?;
     m.add_function(wrap_pyfunction!(median_string, m)?)?;
     m.add_function(wrap_pyfunction!(enumerate_motifs, m)?)?;
     m.add_function(wrap_pyfunction!(number_to_pattern, m)?)?;
