@@ -394,8 +394,24 @@ fn gibbs(py: Python, k: usize, t: usize, n: usize, dna: Vec<String>, eps: i32) -
     Ok((best_score, best_motifs, trace))
 }
 
+#[pyfunction]
+fn distance_between_pattern_and_strings(_py: Python, pattern: &str, dna: Vec<&str>) -> usize {
+    dna.iter().map(|motif| {
+        (0..(motif.len() - pattern.len() + 1)).map(|i| {
+            hamming_distance(pattern, &motif[i..(i + pattern.len())])
+        }).min().unwrap()
+    }).sum()
+}
+
+#[pyfunction]
+fn kmer_composition(_py: Python, k: usize, dna: &str) -> Vec<String> {
+    (0..=dna.len() - k).map(|i| dna[i..i+k].to_string()).collect()
+}
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(kmer_composition, m)?)?;
+    m.add_function(wrap_pyfunction!(distance_between_pattern_and_strings, m)?)?;
     m.add_function(wrap_pyfunction!(gibbs, m)?)?;
     m.add_function(wrap_pyfunction!(randomized_motif_search, m)?)?;
     m.add_function(wrap_pyfunction!(greedy_motif_search, m)?)?;
