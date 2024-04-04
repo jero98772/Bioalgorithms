@@ -1,7 +1,10 @@
 
 pub mod functions {
+    use rand::Rng;
     use std::collections::HashSet;
-
+    
+    
+    
     pub const BASES: &str = "ACGT";
     pub fn pattern_to_number_rust(kmer: &str) -> usize {
         let mut n = 0;
@@ -182,7 +185,7 @@ pub mod functions {
         matrix
     }
 
-    pub fn calculate_profile_matrix(motifs: &[String], bases: &str, k: usize, pseudo_counts: bool) -> Vec<Vec<f64>> {
+    pub fn calculate_profile_matrix_greddy(motifs: &[String], bases: &str, k: usize, pseudo_counts: bool) -> Vec<Vec<f64>> {
         let matrix = count_occurrences_of_bases(motifs, bases, k, pseudo_counts);
         let total = motifs.len() as f64;
         matrix.iter().map(|row| {
@@ -204,4 +207,130 @@ pub mod functions {
         }
         total
     }
+
+    pub fn score_mofit_random(k: usize, motifs: &[String], bases: &str) -> i32 {
+        let mut total = 0;
+        for j in 0..k {
+            let mut counts = vec![0; bases.len()];
+            for motif in motifs {
+                let i = bases.find(motif.chars().nth(j).unwrap()).unwrap();
+                counts[i] += 1;
+            }
+            let mut max = -1;
+            let mut ii = -1;
+            for i in 0..bases.len() {
+                if max < counts[i] {
+                    ii = i as i32;
+                    max = counts[ii as usize];
+                }
+            }
+            for i in 0..bases.len() {
+                if (i as i32) != ii {
+                    total += counts[i];
+                }
+            }
+        }
+        total
+    }
+    pub fn profile_mofit_random(motifs: &[String], k: usize, eps: i32) -> Vec<Vec<f64>> {
+        let mut matrix = vec![vec![eps as f64; k]; 4];
+        for kmer in motifs {
+            for j in 0..k {
+                let i = "ACGT".find(kmer.chars().nth(j).unwrap()).unwrap();
+                matrix[i][j] += 1.0;
+            }
+        }
+        let motifs_len = motifs.len() as f64;
+        matrix.iter_mut().for_each(|row| row.iter_mut().for_each(|x| *x /= motifs_len));
+        matrix
+    }
+    pub fn get_motifs(profile: &[Vec<f64>], dna: &[String], k: usize) -> Vec<String> {
+        let mut motifs = vec![];
+        for s in dna {
+            let mut max_probability = -1.0;
+            let mut most_probable_kmer = String::new();
+            for kmer in s.chars().collect::<Vec<char>>().windows(k) {
+                let kmer_str: String = kmer.iter().collect();
+                let prob = kmer.iter().enumerate().fold(1.0, |p, (j, ch)| {
+                    let i = "ACGT".find(*ch).unwrap();
+                    p * profile[i][j]
+                });
+                if prob > max_probability {
+                    max_probability = prob;
+                    most_probable_kmer = kmer_str;
+                }
+            }
+            motifs.push(most_probable_kmer);
+        }
+        motifs
+    }
+
+    pub fn random_kmer(rng: &mut rand::rngs::ThreadRng, string: &str, k: usize) -> String {
+        let i = rng.gen_range(0..string.len() - k + 1);
+        string[i..i + k].to_string()
+    }
+    pub fn score_gibbs(k: usize, motifs: &[String], bases: &str) -> i32 {
+        let mut total = 0;
+        for j in 0..k {
+            let mut counts = vec![0; bases.len()];
+            for motif in motifs {
+                let i = bases.find(motif.chars().nth(j).unwrap()).unwrap();
+                counts[i] += 1;
+            }
+            let mut max = -1;
+            let mut ii = -1;
+            for i in 0..bases.len() {
+                if max < counts[i] {
+                    ii = i as i32;
+                    max = counts[ii as usize];
+                }
+            }
+            for i in 0..bases.len() {
+                if (i as i32) != ii {
+                    total += counts[i];
+                }
+            }
+        }
+        total
+    }
+    pub fn counts(motifs: &[String], bases: &str, k: usize, eps: i32) -> Vec<Vec<i32>> {
+        let mut matrix = vec![vec![eps; k]; bases.len()];
+        for kmer in motifs {
+            for (j, ch) in kmer.chars().enumerate() {
+                let i = bases.find(ch).unwrap();
+                matrix[i][j] += 1;
+            }
+        }
+        matrix
+    }
+    pub fn profile_gibbs(motifs: &[String], bases: &str, k: usize, eps: i32) -> Vec<Vec<f64>> {
+        let matrix = counts(motifs, bases, k, eps);
+        let motifs_len = motifs.len() as f64;
+        matrix.iter().map(|row| {
+            row.iter().map(|&count| count as f64 / motifs_len).collect()
+        }).collect()
+    }
+    pub fn probability_kmer(kmer: &str, profile: &[Vec<f64>], bases: &str) -> f64 {
+        let mut p = 1.0;
+        for (j, ch) in kmer.chars().enumerate() {
+            let i = bases.find(ch).unwrap();
+            p *= profile[i][j];
+        }
+        p
+    }
+    pub fn generate_gibbs(probabilities: &[f64]) -> usize {
+        let rr = rand::thread_rng().gen::<f64>();
+        let mut accumulated = 0.0;
+        for (i, &p) in probabilities.iter().enumerate() {
+            accumulated += p;
+            if rr <= accumulated {
+                return i;
+            }
+        }
+        probabilities.len() - 1
+    }
+    pub fn drop_one_motif(motifs: &[String], i: usize) -> Vec<String> {
+        motifs.iter().enumerate().filter_map(|(j, motif)| if j != i { Some(motif.clone()) } else { None }).collect()
+    }
+
 }

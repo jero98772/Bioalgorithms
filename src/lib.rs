@@ -6,7 +6,12 @@ use pyo3::wrap_pyfunction;
 use std::collections::HashSet;
 use std::collections::HashMap;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,count_occurrences_of_bases,calculate_profile_matrix,score_mofit_greddy};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+use rand::Rng;
+use rand::prelude::*;
+
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -305,7 +310,7 @@ fn greedy_motif_search(py: Python, k: usize, t: usize, dna: Vec<String>, pseudo_
     for motif in dna[0].chars().take(dna[0].len() - k + 1) {
         let mut motifs = vec![motif.to_string()];
         for i in 1..t {
-            motifs.push(most_probable_rust(&dna[i], k, calculate_profile_matrix(&motifs, BASES, k, pseudo_counts)));
+            motifs.push(most_probable_rust(&dna[i], k, calculate_profile_matrix_greddy(&motifs, BASES, k, pseudo_counts)));
         }
         if score_mofit_greddy(&motifs, BASES, k, pseudo_counts) < score_mofit_greddy(&best_motifs, BASES, k, pseudo_counts) {
             best_motifs = motifs;
@@ -315,9 +320,84 @@ fn greedy_motif_search(py: Python, k: usize, t: usize, dna: Vec<String>, pseudo_
     Ok(best_motifs)
 }
 
+#[pyfunction]
+fn randomized_motif_search(py: Python, k: usize, t: usize, dna: Vec<String>, eps: i32) -> PyResult<(i32, Vec<String>)> {
+    let bases = "ACGT";
+    let mut best_motifs = vec![];
+
+    for i in 0..t {
+        let mut rng = thread_rng();
+        let mut motifs: Vec<String> = dna.iter().map(|s| random_kmer(&mut rng, s, k)).collect();
+        best_motifs = motifs.clone();
+
+        loop {
+            let profile = profile_mofit_random(&motifs, k, eps);
+            motifs = get_motifs(&profile, &dna, k);
+            if score_mofit_random(k, &motifs, &bases) < score_mofit_random(k, &best_motifs, &bases) {
+                best_motifs = motifs.clone();
+            } else {
+                return Ok((score_mofit_random(k, &best_motifs, &bases), best_motifs));
+            }
+        }
+    }
+
+    Ok((score_mofit_random(k, &best_motifs, &bases), best_motifs))
+}
+
+#[pyfunction]
+fn randomized_motif_search_driver(py: Python, k: usize, t: usize, dna: Vec<String>, n: usize) -> PyResult<(f64, Vec<String>)> {
+    let mut best = std::f64::MAX;
+    let mut mm = vec![];
+
+    for i in 0..n {
+        let (sc, motifs) = randomized_motif_search(py, k, t, dna.clone(),n as i32)?;
+        let sc_f64 = sc as f64; // Convert score to f64
+        if sc_f64 < best {
+            best = sc_f64;
+            mm = motifs.clone();
+        }
+        if i % 100 == 0 {
+            println!("{}, {}", i, best);
+            for m in &mm {
+                println!("{}", m);
+            }
+        }
+    }
+    Ok((best, mm))
+}
+#[pyfunction]
+fn gibbs(py: Python, k: usize, t: usize, n: usize, dna: Vec<String>, eps: i32) -> PyResult<(i32, Vec<String>, Vec<i32>)> {
+    let mut best_score = std::i32::MAX;
+    let mut best_motifs = vec![];
+    let mut rng = rand::thread_rng();
+    let mut trace = vec![];
+    let mut motifs = Vec::new();
+    for i in 0..t {
+        motifs.push(random_kmer(&mut rng, &dna[i], k));
+    }
+    best_motifs = motifs.clone();
+
+    for _ in 0..n {
+        let i =  rng.gen_range(0..t);
+        let profile = profile_gibbs(&drop_one_motif(&motifs, i), BASES, k, eps);
+        let probabilities: Vec<f64> = (0..(dna[i].len() - k + 1)).map(|ll| probability_kmer(&dna[i][ll..(ll + k)], &profile, BASES)).collect();
+        let motif_index = generate_gibbs(&probabilities);
+        motifs[i] = dna[i][motif_index..(motif_index + k)].to_string();
+        let sc = score_gibbs(k, &motifs, BASES);
+        if sc < best_score {
+            best_score = sc;
+            best_motifs = motifs.clone();
+        }
+        trace.push(best_score);
+    }
+
+    Ok((best_score, best_motifs, trace))
+}
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(gibbs, m)?)?;
+    m.add_function(wrap_pyfunction!(randomized_motif_search, m)?)?;
     m.add_function(wrap_pyfunction!(greedy_motif_search, m)?)?;
     m.add_function(wrap_pyfunction!(most_probable, m)?)?;
     m.add_function(wrap_pyfunction!(median_string, m)?)?;
