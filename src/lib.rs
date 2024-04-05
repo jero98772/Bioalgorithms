@@ -11,7 +11,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -402,14 +402,59 @@ fn distance_between_pattern_and_strings(_py: Python, pattern: &str, dna: Vec<&st
         }).min().unwrap()
     }).sum()
 }
+#[pyfunction]
+fn reconstruct(fragments: Vec<&str>) -> String {
+    let reconstructed_list = reconstruct_as_list(fragments[0].len(), fragments.len(), &fragments, |fragments, i| fragments[i]);
+    reconstructed_list.concat()
+}
+#[pyfunction]
+fn kmer_composition(py: Python, k: usize, dna: &str) -> PyResult<Vec<String>> {
+    let mut kmers = Vec::new();
+    for i in 0..=(dna.len() - k) {
+        kmers.push(dna[i..i+k].to_string());
+    }
+    Ok(kmers)
+}
 
 #[pyfunction]
-fn kmer_composition(_py: Python, k: usize, dna: &str) -> Vec<String> {
-    (0..=dna.len() - k).map(|i| dna[i..i+k].to_string()).collect()
+fn grph_kmers(py: Python, strings: Vec<String>) -> PyResult<Vec<(String, String)>> {
+    let kk = strings[0].len() - 1;
+    let mut graph = Vec::new();
+    for s in &strings {
+        for t in &strings {
+            if s != t && &s[s.len()-kk..] == &t[0..kk] {
+                graph.push((s.clone(), t.clone()));
+            }
+        }
+    }
+    Ok(graph)
+}
+
+#[pyfunction]
+fn de_bruijn(py: Python, k: usize, text: &str) -> PyResult<Vec<(String, Vec<String>)>> {
+    let kmers = kmer_composition(py, k - 1, text)?;
+    let mut pathgraph = grph_kmers(py, kmers)?;
+
+    let mut de_bruijn_dict = std::collections::HashMap::new();
+    for (a, b) in &pathgraph {
+        de_bruijn_dict.entry(a.clone()).or_insert(Vec::new()).push(b.clone());
+    }
+
+    let mut graph = Vec::new();
+    for (a, b) in de_bruijn_dict {
+        let mut b_standardized = b.clone();
+        b_standardized.sort();
+        b_standardized.dedup();
+        graph.push((a, b_standardized));
+    }
+    graph.sort();
+    Ok(graph)
 }
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(grph_kmers, m)?)?;
+    m.add_function(wrap_pyfunction!(reconstruct, m)?)?;
     m.add_function(wrap_pyfunction!(kmer_composition, m)?)?;
     m.add_function(wrap_pyfunction!(distance_between_pattern_and_strings, m)?)?;
     m.add_function(wrap_pyfunction!(gibbs, m)?)?;

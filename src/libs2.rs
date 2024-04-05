@@ -332,5 +332,28 @@ pub mod functions {
     pub fn drop_one_motif(motifs: &[String], i: usize) -> Vec<String> {
         motifs.iter().enumerate().filter_map(|(j, motif)| if j != i { Some(motif.clone()) } else { None }).collect()
     }
-
+    pub fn reconstruct_as_list<'a, F>(
+        k: usize,
+        n: usize,
+        fragments: &[&'a str],
+        extract: F,
+    ) -> Vec<String>
+    where
+        F: Fn(&[&'a str], usize) -> &'a str,
+    {
+        let mut result = Vec::new();
+        for i in (0..n).step_by(k) {
+            result.push(extract(fragments, i).to_string());
+        }
+        let target_len = n + k - 1;
+        let actual_len = result.len() * k;
+        let overlap = target_len - actual_len;
+        if overlap > 0 {
+            result.push(
+                fragments[fragments.len() - 1][k - overlap..]
+                    .to_string(),
+            );
+        }
+        result
+    }
 }
