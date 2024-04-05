@@ -1,9 +1,9 @@
 
 pub mod functions {
     use rand::Rng;
+    use crate::HashMap;
     use std::collections::HashSet;
-    
-    
+
     
     pub const BASES: &str = "ACGT";
     pub fn pattern_to_number_rust(kmer: &str) -> usize {
@@ -355,5 +355,41 @@ pub mod functions {
             );
         }
         result
+    }
+    pub fn create_unexplored_edges(graph: &HashMap<String, Vec<String>>) -> Vec<(String, String)> {
+        let mut edges = Vec::new();
+        for (a, neighbors) in graph.iter() {
+            for b in neighbors {
+                edges.push((a.clone(), b.clone()));
+            }
+        }
+        edges
+    }
+
+    pub fn find_next(node: &String, graph: &HashMap<String, Vec<String>>, unexplored: &mut Vec<(String, String)>) -> Option<String> {
+        for (i, (a, b)) in unexplored.iter().enumerate() {
+            if *a == *node {
+                let (_, succ) = unexplored.remove(i);
+                return Some(succ);
+            }
+        }
+        None
+    }
+
+    pub fn find_branch(cycle: &Vec<String>, graph: &HashMap<String, Vec<String>>, unexplored: &mut Vec<(String, String)>) -> Option<(usize, String)> {
+        for (pos, node) in cycle.iter().enumerate() {
+            if let Some(succ) = find_next(node, graph, unexplored) {
+                return Some((pos, succ));
+            }
+        }
+        None
+    }
+
+    pub fn find_cycle(cycle: &mut Vec<String>, graph: &HashMap<String, Vec<String>>, unexplored: &mut Vec<(String, String)>, node: &String) {
+        let mut curr_node = node.clone();
+        while let Some(succ) = find_next(&curr_node, graph, unexplored) {
+            cycle.push(succ.clone());
+            curr_node = succ;
+        }
     }
 }

@@ -1,5 +1,7 @@
 import bioinformatics
 
+print(bioinformatics.find_eulerian_cycle({"AAT": ["ATG"],"ATG": ["TGC"],"TGC": ["GCT"],"GCT": ["CTA"],"CTA": ["TAC"],"TAC": ["ACG"],"ACG": ["CGA"],"CGA": ["GAT"],"GAT": ["ATG"]}))
+print(bioinformatics.de_bruijn(3, "ATGATCAAG"))
 print(bioinformatics.grph_kmers(["ACCGA", "CCGAA", "CGAAG", "GAAGC", "AAGCT"]))
 print(bioinformatics.reconstruct(["ACCGA", "CCGAA", "CGAAG", "GAAGC", "AAGCT"]))
 print(bioinformatics.kmer_composition(2,'CAATCCAAC'))

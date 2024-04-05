@@ -11,7 +11,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -451,8 +451,31 @@ fn de_bruijn(py: Python, k: usize, text: &str) -> PyResult<Vec<(String, Vec<Stri
     Ok(graph)
 }
 
+#[pyfunction]
+fn find_eulerian_cycle(graph: HashMap<String, Vec<String>>) -> Vec<String> {
+    let mut unexplored = create_unexplored_edges(&graph);
+    let node = unexplored[0].0.clone();
+    let mut cycle = vec![node.clone()];
+    find_cycle(&mut cycle, &graph, &mut unexplored, &node);
+
+    // Main loop to find the Eulerian cycle
+    loop {
+        if let Some((pos, _)) = find_branch(&cycle, &graph, &mut unexplored) {
+            cycle.rotate_left(pos);
+            let last_node = cycle.last().unwrap().clone(); // Clone last_node
+            find_cycle(&mut cycle, &graph, &mut unexplored, &last_node);
+        } else {
+            break;
+        }
+    }
+
+    cycle
+}
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(find_eulerian_cycle, m)?)?;
+    m.add_function(wrap_pyfunction!(de_bruijn, m)?)?;
     m.add_function(wrap_pyfunction!(grph_kmers, m)?)?;
     m.add_function(wrap_pyfunction!(reconstruct, m)?)?;
     m.add_function(wrap_pyfunction!(kmer_composition, m)?)?;
