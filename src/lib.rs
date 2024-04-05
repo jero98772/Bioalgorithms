@@ -11,7 +11,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node};
 use libs2::functions::{BASES};
 
 #[pyfunction]
@@ -471,9 +471,26 @@ fn find_eulerian_cycle(graph: HashMap<String, Vec<String>>) -> Vec<String> {
 
     cycle
 }
+fn find_eulerian_path_rust(graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
+    let start = get_start_node(&graph);
+    let finish = get_finish_node(&graph);
+    if start.len() == 1 && finish.len() == 1 {
+        let mut new_graph = graph.clone();
+        new_graph.insert(finish[0], vec![start[0]]);
+        adjust_eulerian_path(find_eulerian_path_rust(new_graph), start[0], finish[0])
+    } else {
+        Vec::new() // return empty vector if conditions not met
+    }
+}
+#[pyfunction]
+fn find_eulerian_path(_py: Python, graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
+    find_eulerian_path_rust(graph)
+}
+
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(find_eulerian_path, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_cycle, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn, m)?)?;
     m.add_function(wrap_pyfunction!(grph_kmers, m)?)?;

@@ -392,4 +392,62 @@ pub mod functions {
             curr_node = succ;
         }
     }
+    pub fn get_start_node(graph: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+        let mut start = Vec::new();
+        for (candidate, _) in graph.iter() {
+            let mut in_count = 0;
+            for (_, ins) in graph.iter() {
+                in_count += ins.iter().filter(|&&i| i == *candidate).count();
+            }
+            if in_count < graph[candidate].len() {
+                start.push(*candidate);
+            }
+        }
+        start
+    }
+
+    pub fn get_finish_node(graph: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+        let mut finish = Vec::new();
+        let mut closed = HashSet::new();
+        for outs in graph.values() {
+            for &candidate in outs {
+                if !closed.contains(&candidate) {
+                    let mut in_count = 0;
+                    for os in graph.values() {
+                        for &o in os {
+                            if o == candidate {
+                                in_count += 1;
+                            }
+                        }
+                    }
+                    if !graph.contains_key(&candidate) || in_count > graph[&candidate].len() {
+                        finish.push(candidate);
+                    }
+                    closed.insert(candidate);
+                }
+            }
+        }
+        finish
+    }
+
+    pub fn adjust_eulerian_path(path: Vec<u32>, start: u32, finish: u32) -> Vec<u32> {
+        let mut path = path;
+        let mut i = path.len();
+        while i > 0 && (path[0] != start || path[path.len() - 1] != finish) {
+            path.rotate_left(1);
+            i -= 1;
+        }
+        path
+    }
+    pub fn nodes(graph: &HashMap<u32, Vec<u32>>) -> HashSet<u32> {
+        let mut all_nodes = HashSet::new();
+        for (node, adj_nodes) in graph {
+            all_nodes.insert(*node);
+            for &adj_node in adj_nodes {
+                all_nodes.insert(adj_node);
+            }
+        }
+        all_nodes
+    }
+
 }
