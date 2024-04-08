@@ -2,6 +2,7 @@ mod libs2;
 
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use pyo3::exceptions::PyValueError;
 
 use std::collections::HashSet;
 use std::collections::HashMap;
@@ -12,7 +13,7 @@ use rand::Rng;
 use rand::prelude::*;
 
 use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node};
-use libs2::functions::{BASES};
+use libs2::functions::{BASES,genetic_code};
 
 #[pyfunction]
 fn pattern_count(text: &str, pattern: &str) -> PyResult<i32> {
@@ -518,9 +519,33 @@ fn de_bruijn_collection(py: Python,pattern: Vec<String>,head: Option<PyObject>,t
     Ok(graph)
 }
 
+#[pyfunction]
+fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
+    let mut peptide = String::new();
 
-#[pymodule]
+    // Split the RNA string into codons (triplets)
+    let codons: Vec<String> = pattern.chars().collect::<Vec<_>>().chunks(3).map(|chunk| chunk.iter().collect()).collect();
+
+    for codon in codons {
+        // Search for the codon in the genetic code
+        let mut found = false;
+        for (rna, amino_acid) in genetic_code().iter() {
+            if *rna == codon {
+                peptide.push_str(amino_acid);
+                found = true;
+                break;
+            }
+        }
+        // If codon is not found in genetic code, return an error
+        if !found {
+            return Err(PyValueError::new_err("Invalid RNA sequence!"));
+        }
+    }
+
+    Ok(peptide)
+}#[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(translate_rna_to_aminoacid, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn_collection, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_path, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_cycle, m)?)?;
