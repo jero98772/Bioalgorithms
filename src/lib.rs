@@ -486,10 +486,42 @@ fn find_eulerian_path_rust(graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
 fn find_eulerian_path(_py: Python, graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
     find_eulerian_path_rust(graph)
 }
+use pyo3::prelude::*;
+
+#[pyfunction]
+fn de_bruijn_collection(py: Python,pattern: Vec<String>,head: Option<PyObject>,tail: Option<PyObject>,) -> PyResult<HashMap<String, Vec<String>>> {
+    let mut graph = HashMap::new();
+    let k = pattern[0].len();
+
+    for kmer in pattern {
+        let h = if let Some(ref h_func) = head {
+            let result = h_func.call1(py, (kmer.clone(),))?;
+            result.extract::<String>(py)?
+        } else {
+            kmer[..k - 1].to_string()
+        };
+
+        let t = if let Some(ref t_func) = tail {
+            let result = t_func.call1(py, (kmer.clone(),))?;
+            result.extract::<String>(py)?
+        } else {
+            kmer[1..].to_string()
+        };
+
+        graph.entry(h).or_insert_with(Vec::new).push(t);
+    }
+
+    for (_, v) in graph.iter_mut() {
+        v.sort();
+    }
+
+    Ok(graph)
+}
 
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(de_bruijn_collection, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_path, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_cycle, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn, m)?)?;
