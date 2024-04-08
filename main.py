@@ -1,12 +1,7 @@
 import bioinformatics
 
-def custom_head(kmer):
-    return kmer[:-1]
-def custom_tail(kmer):
-    return kmer[1:]
-
 print(bioinformatics.translate_rna_to_aminoacid("AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA"))
-print(bioinformatics.de_bruijn_collection(["ATG", "ATG", "TGT", "TGG", "CAT", "GGA", "GAT", "AGA"], custom_head, custom_tail))
+print(bioinformatics.de_bruijn_collection(["ATG", "ATG", "TGT", "TGG", "CAT", "GGA", "GAT", "AGA"], lambda kmer: kmer[:-1], lambda kmer: kmer[1:]))
 print(bioinformatics.find_eulerian_cycle({"AAT": ["ATG"],"ATG": ["TGC"],"TGC": ["GCT"],"GCT": ["CTA"],"CTA": ["TAC"],"TAC": ["ACG"],"ACG": ["CGA"],"CGA": ["GAT"],"GAT": ["ATG"]}))
 print(bioinformatics.de_bruijn(3, "ATGATCAAG"))
 print(bioinformatics.grph_kmers(["ACCGA", "CCGAA", "CGAAG", "GAAGC", "AAGCT"]))

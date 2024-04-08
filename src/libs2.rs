@@ -466,5 +466,12 @@ pub mod functions {
         }
         all_nodes
     }
+    pub fn headf(kmer: &str) -> String {
+        kmer[..kmer.len() - 1].to_string()
+    }
+
+    pub fn tailf(kmer: &str) -> String {
+        kmer[1..].to_string()
+    }
 
 }

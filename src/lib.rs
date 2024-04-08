@@ -12,7 +12,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node,headf,tailf};
 use libs2::functions::{BASES,genetic_code};
 
 #[pyfunction]
@@ -490,23 +490,23 @@ fn find_eulerian_path(_py: Python, graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
 use pyo3::prelude::*;
 
 #[pyfunction]
-fn de_bruijn_collection(py: Python,pattern: Vec<String>,head: Option<PyObject>,tail: Option<PyObject>,) -> PyResult<HashMap<String, Vec<String>>> {
+fn de_bruijn_collection(py: Python,pattern: Vec<String>,head_func: Option<PyObject>,tail_func: Option<PyObject>,) -> PyResult<HashMap<String, Vec<String>>> {
     let mut graph = HashMap::new();
     let k = pattern[0].len();
 
     for kmer in pattern {
-        let h = if let Some(ref h_func) = head {
+        let h = if let Some(ref h_func) = head_func {
             let result = h_func.call1(py, (kmer.clone(),))?;
             result.extract::<String>(py)?
         } else {
-            kmer[..k - 1].to_string()
+            headf(&kmer)
         };
 
-        let t = if let Some(ref t_func) = tail {
+        let t = if let Some(ref t_func) = tail_func {
             let result = t_func.call1(py, (kmer.clone(),))?;
             result.extract::<String>(py)?
         } else {
-            kmer[1..].to_string()
+            tailf(&kmer)
         };
 
         graph.entry(h).or_insert_with(Vec::new).push(t);
@@ -543,7 +543,17 @@ fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
     }
 
     Ok(peptide)
-}#[pymodule]
+}
+/*#[pyfunction]
+fn reconstruct_from_kmers(_py: Python, k: usize, patterns: Vec<String>) -> String {
+    // Your reconstruction algorithm implementation here
+    reconstruct(find_eulerian_cycle(de_bruijn_collection(patterns)))
+    //let result = "Your reconstruction result here".to_string();
+    //result
+}*/
+
+
+#[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(translate_rna_to_aminoacid, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn_collection, m)?)?;
