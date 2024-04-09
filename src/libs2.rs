@@ -473,5 +473,22 @@ pub mod functions {
     pub fn tailf(kmer: &str) -> String {
         kmer[1..].to_string()
     }
+    pub fn de_bruijn_collection_rust(pattern: Vec<String>) -> HashMap<String, Vec<String>> {
+        let mut graph = HashMap::new();
+        let k = pattern[0].len();
 
+        for kmer in pattern {
+            let h = headf(&kmer);//if let Some(ref h_func) = head_func {
+            let t = tailf(&kmer);
+
+            graph.entry(h).or_insert_with(Vec::new).push(t);
+        }
+
+        for (_, v) in graph.iter_mut() {
+            v.sort();
+        }
+
+        graph
+
+    }
 }

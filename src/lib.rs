@@ -12,7 +12,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node,headf,tailf};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node,headf,tailf,de_bruijn_collection_rust};
 use libs2::functions::{BASES,genetic_code};
 
 #[pyfunction]
@@ -404,10 +404,12 @@ fn distance_between_pattern_and_strings(_py: Python, pattern: &str, dna: Vec<&st
     }).sum()
 }
 #[pyfunction]
-fn reconstruct(fragments: Vec<&str>) -> String {
-    let reconstructed_list = reconstruct_as_list(fragments[0].len(), fragments.len(), &fragments, |fragments, i| fragments[i]);
+fn reconstruct(fragments: Vec<String>) -> String {
+    let fragment_slices: Vec<&str> = fragments.iter().map(|s| s.as_str()).collect();
+    let reconstructed_list = reconstruct_as_list(fragments[0].len(), fragments.len(), &fragment_slices, |fragments, i| fragments[i]);
     reconstructed_list.concat()
 }
+
 #[pyfunction]
 fn kmer_composition(py: Python, k: usize, dna: &str) -> PyResult<Vec<String>> {
     let mut kmers = Vec::new();
@@ -487,7 +489,6 @@ fn find_eulerian_path_rust(graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
 fn find_eulerian_path(_py: Python, graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
     find_eulerian_path_rust(graph)
 }
-use pyo3::prelude::*;
 
 #[pyfunction]
 fn de_bruijn_collection(py: Python,pattern: Vec<String>,head_func: Option<PyObject>,tail_func: Option<PyObject>,) -> PyResult<HashMap<String, Vec<String>>> {
@@ -544,17 +545,15 @@ fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
 
     Ok(peptide)
 }
-/*#[pyfunction]
-fn reconstruct_from_kmers(_py: Python, k: usize, patterns: Vec<String>) -> String {
-    // Your reconstruction algorithm implementation here
-    reconstruct(find_eulerian_cycle(de_bruijn_collection(patterns)))
-    //let result = "Your reconstruction result here".to_string();
-    //result
-}*/
+#[pyfunction]
+fn reconstruct_from_kmers(_py: Python, k: usize, patterns: Vec<String>) -> String {//check
+    reconstruct(find_eulerian_cycle(de_bruijn_collection_rust(patterns)))
+}
 
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(reconstruct_from_kmers, m)?)?;
     m.add_function(wrap_pyfunction!(translate_rna_to_aminoacid, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn_collection, m)?)?;
     m.add_function(wrap_pyfunction!(find_eulerian_path, m)?)?;
