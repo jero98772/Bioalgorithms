@@ -647,7 +647,7 @@ fn longest_commons_subsequences(strings: Vec<&str>) -> Vec<(usize, String)> {
 }
 
 #[pyfunction]
-fn get_minimum_penalty(py: Python, x: String, y: String, pxy: i32, pgap: i32) -> PyResult<(i32, String, String)> {
+fn sequence_aligment(py: Python, x: String, y: String, pxy: i32, pgap: i32) -> PyResult<(i32, String, String)> {
     let mut i: usize;
     let mut j: usize;
      
@@ -764,7 +764,7 @@ fn get_minimum_penalty(py: Python, x: String, y: String, pxy: i32, pgap: i32) ->
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(get_minimum_penalty, m)?)?;
+    m.add_function(wrap_pyfunction!(sequence_aligment, m)?)?;
     m.add_function(wrap_pyfunction!(longest_commons_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(longest_common_subsequence, m)?)?;
     m.add_function(wrap_pyfunction!(commun_patters, m)?)?;
