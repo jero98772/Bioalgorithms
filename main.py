@@ -1,4 +1,5 @@
 import bioinformatics
+print(bioinformatics.lcs("ACCGAAGG","ACCGAACC"))
 print(bioinformatics.commun_patters(["XAaXV","XAsXV","XAcXV"]))
 print(bioinformatics.reconstruct_from_kmers(3,["AAT","ATG", "TGC", "GCT", "CTA"]))#check this output
 print(bioinformatics.translate_rna_to_aminoacid("AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA"))

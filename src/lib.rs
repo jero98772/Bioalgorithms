@@ -599,8 +599,49 @@ fn commun_patters<'a>(strings: Vec<&'a str>) -> Vec<String> {
     commun_patters_vec
 }
 
+#[pyfunction]
+fn lcs(string1: &str, string2: &str) -> (usize, String) {
+    let total_rows = string1.len() + 1;
+    let total_columns = string2.len() + 1;
+    let string1_chars = string1.as_bytes();
+    let string2_chars = string2.as_bytes();
+
+    let mut table = vec![vec![0; total_columns]; total_rows];
+
+    for row in 1..total_rows {
+        for col in 1..total_columns {
+            if string1_chars[row - 1] == string2_chars[col - 1] {
+                table[row][col] = table[row - 1][col - 1] + 1;
+            } else {
+                table[row][col] = std::cmp::max(table[row][col - 1], table[row - 1][col]);
+            }
+        }
+    }
+
+    let mut common_seq = Vec::new();
+    let mut x = total_rows - 1;
+    let mut y = total_columns - 1;
+
+    while x != 0 && y != 0 {
+        if table[x][y] == table[x - 1][y] {
+            x = x - 1;
+        } else if table[x][y] == table[x][y - 1] {
+            y = y - 1;
+        } else {
+            assert_eq!(string1_chars[x - 1], string2_chars[y - 1]);
+            let char = string1_chars[x - 1];
+            common_seq.push(char);
+            x = x - 1;
+            y = y - 1;
+        }
+    }
+    common_seq.reverse();
+    (table[total_rows - 1][total_columns - 1], String::from_utf8(common_seq).unwrap())
+}
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(lcs, m)?)?;
     m.add_function(wrap_pyfunction!(commun_patters, m)?)?;
     m.add_function(wrap_pyfunction!(find_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(reconstruct_from_kmers, m)?)?;
