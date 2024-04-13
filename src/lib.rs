@@ -600,7 +600,7 @@ fn commun_patters<'a>(strings: Vec<&'a str>) -> Vec<String> {
 }
 
 #[pyfunction]
-fn lcs(string1: &str, string2: &str) -> (usize, String) {
+fn longest_common_subsequence(string1: &str, string2: &str) -> (usize, String) {
     let total_rows = string1.len() + 1;
     let total_columns = string2.len() + 1;
     let string1_chars = string1.as_bytes();
@@ -639,9 +639,22 @@ fn lcs(string1: &str, string2: &str) -> (usize, String) {
     (table[total_rows - 1][total_columns - 1], String::from_utf8(common_seq).unwrap())
 }
 
+#[pyfunction]
+fn longest_commons_subsequences(strings: Vec<&str>) -> Vec<(usize, String)> {
+    let mut results = HashSet::new();
+    for i in 0..strings.len() {
+        for j in (i + 1)..strings.len() {
+            let (lcs_length, lcs_string) = longest_common_subsequence(strings[i], strings[j]);
+            results.insert((lcs_length, lcs_string));
+        }
+    }
+    results.into_iter().collect()
+}
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(lcs, m)?)?;
+    m.add_function(wrap_pyfunction!(longest_commons_subsequences, m)?)?;
+    m.add_function(wrap_pyfunction!(longest_common_subsequence, m)?)?;
     m.add_function(wrap_pyfunction!(commun_patters, m)?)?;
     m.add_function(wrap_pyfunction!(find_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(reconstruct_from_kmers, m)?)?;
