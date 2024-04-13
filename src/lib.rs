@@ -12,7 +12,7 @@ use rand::thread_rng;
 use rand::Rng;
 use rand::prelude::*;
 
-use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node,headf,tailf,de_bruijn_collection_rust};
+use libs2::functions::{pattern_to_number_rust,pattern_count_frequent_words,pattern_count_positions_rust,hamming_distance,approx,generate_kmer_neighbors,d,product,log_prob,most_probable_rust,calculate_profile_matrix_greddy,score_mofit_greddy,score_mofit_random,profile_mofit_random,get_motifs,random_kmer,score_gibbs,profile_gibbs,probability_kmer,generate_gibbs,drop_one_motif,reconstruct_as_list,find_cycle,find_branch,find_next,create_unexplored_edges,nodes,adjust_eulerian_path,get_finish_node,get_start_node,headf,tailf,de_bruijn_collection_rust,get_min_length};
 use libs2::functions::{BASES,genetic_code};
 
 #[pyfunction]
@@ -546,13 +546,63 @@ fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
     Ok(peptide)
 }
 #[pyfunction]
-fn reconstruct_from_kmers(_py: Python, k: usize, patterns: Vec<String>) -> String {//check
+fn reconstruct_from_kmers(_py: Python, _k: usize, patterns: Vec<String>) -> String {//check
     reconstruct(find_eulerian_cycle(de_bruijn_collection_rust(patterns)))
 }
+#[pyfunction]
+fn find_subsequences<'a>(strings: Vec<&'a str>) -> Vec<String> {
+    let mut subsequences: Vec<String> = Vec::new();
 
+    for string in strings {
+        // Generate all subsequences for each string
+        let len = string.len();
+        for i in 0..len {
+            for j in i + 1..=len {
+                subsequences.push(string[i..j].to_string());
+            }
+        }
+    }
+
+    subsequences
+}
+#[pyfunction]
+fn commun_patters<'a>(strings: Vec<&'a str>) -> Vec<String> {
+    let mut commun_patters_vec = vec![];
+    let mut matches = false;
+    let mut match_str= String::from("");
+    let min_length = get_min_length(&strings);
+    for i in 0..min_length {
+        for j in 1..strings.len() {
+                if strings[j].chars().nth(i)==strings[j-1].chars().nth(i){
+                    matches = true;
+                }else{
+                    matches = false;
+                    break; 
+                }
+            }
+        if matches{
+                if let Some(character) = strings[0].chars().nth(i) {
+                    match_str.push(character); 
+                }
+        }
+        if !match_str.is_empty() && i==min_length-1{
+            commun_patters_vec.push(match_str.clone());
+        }
+         if !matches{
+            if !match_str.is_empty() {
+                commun_patters_vec.push(match_str.clone());
+                match_str= String::from("");
+            }
+
+        }
+    }
+    commun_patters_vec
+}
 
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(commun_patters, m)?)?;
+    m.add_function(wrap_pyfunction!(find_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(reconstruct_from_kmers, m)?)?;
     m.add_function(wrap_pyfunction!(translate_rna_to_aminoacid, m)?)?;
     m.add_function(wrap_pyfunction!(de_bruijn_collection, m)?)?;

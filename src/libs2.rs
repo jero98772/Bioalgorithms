@@ -491,4 +491,14 @@ pub mod functions {
         graph
 
     }
+    pub fn get_min_length(strings: &Vec<&str>) -> usize {
+    // Assuming the vector of strings is not empty
+    let mut min_length = strings[0].len();
+    for string in strings {
+        if string.len() < min_length {
+            min_length = string.len();
+        }
+    }
+    min_length
+    }
 }
