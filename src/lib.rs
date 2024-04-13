@@ -523,12 +523,8 @@ fn de_bruijn_collection(py: Python,pattern: Vec<String>,head_func: Option<PyObje
 #[pyfunction]
 fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
     let mut peptide = String::new();
-
-    // Split the RNA string into codons (triplets)
     let codons: Vec<String> = pattern.chars().collect::<Vec<_>>().chunks(3).map(|chunk| chunk.iter().collect()).collect();
-
     for codon in codons {
-        // Search for the codon in the genetic code
         let mut found = false;
         for (rna, amino_acid) in genetic_code().iter() {
             if *rna == codon {
@@ -537,7 +533,6 @@ fn translate_rna_to_aminoacid(pattern: &str) -> PyResult<String> {
                 break;
             }
         }
-        // If codon is not found in genetic code, return an error
         if !found {
             return Err(PyValueError::new_err("Invalid RNA sequence!"));
         }
@@ -651,8 +646,125 @@ fn longest_commons_subsequences(strings: Vec<&str>) -> Vec<(usize, String)> {
     results.into_iter().collect()
 }
 
+#[pyfunction]
+fn get_minimum_penalty(py: Python, x: String, y: String, pxy: i32, pgap: i32) -> PyResult<(i32, String, String)> {
+    let mut i: usize;
+    let mut j: usize;
+     
+    let m = x.len(); // length of gene1
+    let n = y.len(); // length of gene2
+     
+    // table for storing optimal substructure answers
+    let mut dp = vec![vec![0; n+m+1]; n+m+1];
+ 
+    // initialising the table 
+    for i in 0..=(n+m) {
+        dp[i][0] = (i as i32) * pgap;
+        dp[0][i] = (i as i32) * pgap;
+    }    
+ 
+    // calculating the minimum penalty
+    for i in 1..=m {
+        for j in 1..=n {
+            if x.chars().nth(i - 1) == y.chars().nth(j - 1) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = std::cmp::min(dp[i - 1][j - 1] + pxy , 
+                                std::cmp::min(dp[i - 1][j] + pgap,
+                                              dp[i][j - 1] + pgap));
+            }
+        }
+    }
+ 
+    // Reconstructing the solution
+    let l = n + m; // maximum possible length
+     
+    let mut i = m;
+    let mut j = n;
+     
+    let mut xpos = l;
+    let mut ypos = l;
+ 
+    // Final answers for the respective strings
+    let mut xans = vec![0; l+1];
+    let mut yans = vec![0; l+1];
+     
+    while !(i == 0 || j == 0) {
+        if x.chars().nth(i - 1) == y.chars().nth(j - 1) {
+            xans[xpos] = x.chars().nth(i - 1).unwrap() as i32;
+            yans[ypos] = y.chars().nth(j - 1).unwrap() as i32;
+            xpos -= 1;
+            ypos -= 1;
+            i -= 1;
+            j -= 1;
+        } else if dp[i - 1][j - 1] + pxy == dp[i][j] {
+            xans[xpos] = x.chars().nth(i - 1).unwrap() as i32;
+            yans[ypos] = y.chars().nth(j - 1).unwrap() as i32;
+            xpos -= 1;
+            ypos -= 1;
+            i -= 1;
+            j -= 1;
+        } else if dp[i - 1][j] + pgap == dp[i][j] {
+            xans[xpos] = x.chars().nth(i - 1).unwrap() as i32;
+            yans[ypos] = '_' as i32;
+            xpos -= 1;
+            ypos -= 1;
+            i -= 1;
+        } else if dp[i][j - 1] + pgap == dp[i][j] {
+            xans[xpos] = '_' as i32;
+            yans[ypos] = y.chars().nth(j - 1).unwrap() as i32;
+            xpos -= 1;
+            ypos -= 1;
+            j -= 1;
+        }
+    }
+    while xpos > 0 {
+        if i > 0 {
+            xans[xpos] = x.chars().nth(i - 1).unwrap() as i32;
+            xpos -= 1;
+            i -= 1;
+        } else {
+            xans[xpos] = '_' as i32;
+            xpos -= 1;
+        }
+    }
+    while ypos > 0 {
+        if j > 0 {
+            yans[ypos] = y.chars().nth(j - 1).unwrap() as i32;
+            ypos -= 1;
+            j -= 1;
+        } else {
+            yans[ypos] = '_' as i32;
+            ypos -= 1;
+        }
+    }
+ 
+    // Since we have assumed the answer to be n+m long, 
+    // we need to remove the extra gaps in the starting 
+    // id represents the index from which the arrays
+    // xans, yans are useful
+    let mut id = 1;
+    for i in (1..=l).rev() {
+        if yans[i] == '_' as i32 && xans[i] == '_' as i32 {
+            id = i + 1;
+            break;
+        }
+    }
+ 
+    // Constructing aligned strings
+    let mut aligned_x = String::new();
+    let mut aligned_y = String::new();
+    for i in id..=l {
+        aligned_x.push(xans[i] as u8 as char);
+        aligned_y.push(yans[i] as u8 as char);
+    }
+    
+    Ok((dp[m][n], aligned_x, aligned_y))
+}
+
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(get_minimum_penalty, m)?)?;
     m.add_function(wrap_pyfunction!(longest_commons_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(longest_common_subsequence, m)?)?;
     m.add_function(wrap_pyfunction!(commun_patters, m)?)?;
