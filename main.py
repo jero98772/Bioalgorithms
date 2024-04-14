@@ -1,4 +1,5 @@
 import bioinformatics
+print(bioinformatics.levenshtein_distance("kitten","sitting"))
 print(bioinformatics.sequence_aligment("AGGGCT","AGGCA",3,2))
 print(bioinformatics.longest_commons_subsequences(["ACCGAAGG","ACCGAACC","CCACCGAAGG","GGACCGAACC"]))
 print(bioinformatics.longest_common_subsequence("ACCGAAGG","ACCGAACC"))

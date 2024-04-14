@@ -646,6 +646,7 @@ fn longest_commons_subsequences(strings: Vec<&str>) -> Vec<(usize, String)> {
     results.into_iter().collect()
 }
 
+
 #[pyfunction]
 fn sequence_aligment(py: Python, x: String, y: String, pxy: i32, pgap: i32) -> PyResult<(i32, String, String)> {
     let mut i: usize;
@@ -762,8 +763,36 @@ fn sequence_aligment(py: Python, x: String, y: String, pxy: i32, pgap: i32) -> P
     Ok((dp[m][n], aligned_x, aligned_y))
 }
 
+#[pyfunction]
+fn levenshtein_distance(str1: &str, str2: &str) -> PyResult<usize> {
+    let len1 = str1.chars().count();
+    let len2 = str2.chars().count();
+
+    let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
+
+    for i in 0..=len1 {
+        matrix[i][0] = i;
+    }
+
+    for j in 0..=len2 {
+        matrix[0][j] = j;
+    }
+
+    for (i, char1) in str1.chars().enumerate() {
+        for (j, char2) in str2.chars().enumerate() {
+            let cost = if char1 == char2 { 0 } else { 1 };
+
+            matrix[i + 1][j + 1] = (matrix[i][j + 1] + 1)
+                .min(matrix[i + 1][j] + 1)
+                .min(matrix[i][j] + cost);
+        }
+    }
+
+    Ok(matrix[len1][len2])
+}
 #[pymodule]
 fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(levenshtein_distance, m)?)?;
     m.add_function(wrap_pyfunction!(sequence_aligment, m)?)?;
     m.add_function(wrap_pyfunction!(longest_commons_subsequences, m)?)?;
     m.add_function(wrap_pyfunction!(longest_common_subsequence, m)?)?;
