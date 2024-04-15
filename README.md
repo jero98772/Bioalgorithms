@@ -1,6 +1,7 @@
 
-<img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="148" height="148">
+
 # Bioinformatics-toolspy
+<center><img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="448" height="448"></center>center>
 
 ### Features 
 
