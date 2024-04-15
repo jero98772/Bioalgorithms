@@ -1,3 +1,5 @@
+![logo](https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg)
+
 # Bioinformatics-toolspy
 
 ### Features 
