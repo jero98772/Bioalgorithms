@@ -1,5 +1,5 @@
-![logo](https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg)
 
+<img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="148" height="148">
 # Bioinformatics-toolspy
 
 ### Features 
