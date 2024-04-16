@@ -3,49 +3,64 @@
 # Bioinformatics-toolspy
 <p align="center"><img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="500" height="500"></p>
 
-### Features 
+## Overview
+Bioinformatics-toolspy is a powerful library tailored for Python users but built in Rust, harnessing the efficiency and speed of compiled languages. With over 30 functions crafted for both bioinformatics and general programming tasks, this library integrates dynamic programming, greedy techniques, and optimized data structures such as hashmaps.
 
-this library is for python users but is made in rust because is going to become the new C++/C , is compiled it mean normaly is more faster that interpreter langages like python,javascript and others
+Beyond Python, Bioinformatics-toolspy offers compatibility with Rust, empowering developers to leverage its capabilities across different programming paradigms.
 
-it have more over 30 functions used for Bioinformatics and Programers, some of thems are most optized in based theorical infometion like using Dinamic programing, some greddy technics and more, ideal data structures for some problems like hashmap...
+## Features
 
-you can use this code with rust too
+- **Efficiency**: Utilizes Rust's compiled nature for enhanced performance compared to interpreted languages like Python and JavaScript.
+- **Comprehensive Functionality**: Offers a diverse set of functions optimized for various bioinformatics and programming tasks.
+- **Algorithmic Techniques**: Implements advanced algorithms including dynamic programming and greedy strategies.
+- **Data Structures**: Leverages efficient data structures such as hashmaps to streamline problem-solving.
 
-### Installing
+## Installation
 
-**Download repositories**
+### Prerequisites
 
-    git clone https://github.com/jero98772/Bioinformatics-toolspy.git
+- Git
+- Python 3.x
+- Rust (for compiling Rust code)
+- `maturin` (for Rust bindings)
 
-**Create virtual enviroment:**
+### Installation Steps
 
-    cd Bioinformatics-toolspy
-    python -m venv env
-    source env/bin/activate
-    pip install maturin
+1. **Clone Repository:**
+   ```
+   git clone https://github.com/jero98772/Bioinformatics-toolspy.git
+   ```
 
-**Compile rust code:**
+2. **Set Up Virtual Environment:**
+   ```
+   cd Bioinformatics-toolspy
+   python -m venv env
+   source env/bin/activate
+   pip install maturin
+   ```
 
-    maturin develop
+3. **Compile Rust Code:**
+   ```
+   maturin develop
+   ```
 
-**For implement this in your code** 
-
-you have to put temporaly your python file inside the folder  and run 
-
-    python <your file>
-
-
-
-### Made for:
-
-this proyect is made to learn some bioinformatics algoriths focused to optimize python with rust and pyo3, and do something better or more popular to [biopython](https://github.com/biopython/biopython) it have some functions in pure python like knn... (and we know python is more slow langue that rust sometimes)
+4. **Integration with Your Code:**
+   Place your Python file temporarily inside the folder and execute:
+   ```
+   python <your_file>
+   ```
 
 
-### Notes and Contribution
 
-you are welcome to contribute , if see a problem, do issue. if you wanna use it , and you dont know something write me [jero98772@protonmail.com](jero98772@protonmail.com)
+## Purpose
 
-it seems like a good library with a lot of potencial , but i dont know if continue building this beacuse i have other things to do 
+Bioinformatics-toolspy is a project aimed at enhancing bioinformatics algorithm implementations, focusing on optimizing Python with Rust and PyO3 bindings. It aims to provide a complement to existing libraries like [Biopython](https://github.com/biopython/biopython), featuring functions both in pure Python and Rust for improved performance.
+
+## Contribution
+
+Contributions to this project are welcome. If you encounter any issues or have suggestions for improvement, please open an issue. For inquiries or assistance, contact [jero98772@protonmail.com](mailto:jero98772@protonmail.com).
+
+While the library shows promise, its future development may be uncertain due to other commitments.
 
 
 ### Training material and documentation
