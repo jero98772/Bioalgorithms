@@ -1,5 +1,3 @@
-
-
 # Bioinformatics-toolspy
 <p align="center"><img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="500" height="500"></p>
 
@@ -50,7 +48,9 @@ Beyond Python, Bioinformatics-toolspy offers compatibility with Rust, empowering
    python <your_file>
    ```
 
+## Code Documentation
 
+For comprehensive documentation and usage guidelines, please refer to the [Bioinformatics-toolspy Documentation](https://your-documentation-link-here). This documentation covers installation instructions, detailed explanations of available functions, code examples, and more. Whether you're a beginner exploring bioinformatics algorithms or an experienced developer seeking to optimize your workflows, the documentation serves as a valuable resource to unleash the full potential of Bioinformatics-toolspy.
 
 ## Purpose
 
@@ -75,3 +75,6 @@ book bioinformtics algorithms an active learning aproch solutions by Phillip Com
 
 [https://github.com/weka511/bioinformatics](https://github.com/weka511/bioinformatics)
 
+### license
+
+Bioinformatics-toolspy is licensed under the GNU General Public License v3.0 (GPL-3.0). This license grants users the freedom to copy, modify, and distribute the software according to the terms outlined in the license agreement. If you choose to copy or redistribute the codebase, all you need to do is ensure that my name, jero98772, is included in the credits or acknowledgments. This requirement ensures proper attribution and helps maintain transparency in the open-source community.
