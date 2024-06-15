@@ -3,7 +3,12 @@ requires = ["maturin>=1.4,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "bioinformatics"
+name = "bioalgorithms"
+version = "1.0.0"
+edition = "2021"
+description = " A Python library built in Rust for bioinformatics tasks, offering over 30 functions including dynamic programming and optimized data structures for enhanced performance. "
+license = "GPLv3"
+homepage = "https://github.com/jero98772/Bioinformatics-toolspy"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Rust",
@@ -14,3 +19,6 @@ dynamic = ["version"]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+[package.metadata]
+authors = [{ name = "jero98772", email = "jero98772@protonmail.com" }]

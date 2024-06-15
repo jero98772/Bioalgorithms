@@ -1,11 +1,15 @@
 [package]
-name = "bioinformatics"
-version = "0.1.0"
+name = "bioalgorithms"
+version = "1.0.0"
 edition = "2021"
+authors = ["jero98772 <jero98772@protonmail.com>"]
+description = " A Python library built in Rust for bioinformatics tasks, offering over 30 functions including dynamic programming and optimized data structures for enhanced performance. "
+license = "GPLv3"
+homepage = "https://github.com/jero98772/Bioinformatics-toolspy"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "bioinformatics"
+name = "bioalgorithms"
 crate-type = ["cdylib"]
 
 [dependencies]

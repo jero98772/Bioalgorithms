@@ -791,7 +791,7 @@ fn levenshtein_distance(str1: &str, str2: &str) -> PyResult<usize> {
     Ok(matrix[len1][len2])
 }
 #[pymodule]
-fn bioinformatics(_py: Python, m: &PyModule) -> PyResult<()> {
+fn bioalgorithms(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(levenshtein_distance, m)?)?;
     m.add_function(wrap_pyfunction!(sequence_aligment, m)?)?;
     m.add_function(wrap_pyfunction!(longest_commons_subsequences, m)?)?;
