@@ -24,6 +24,10 @@ Beyond Python, Bioalgorithms offers compatibility with Rust, empowering develope
 
 ### Installation Steps
 
+      pip install bioalgorithms
+
+or 
+
 1. **Clone Repository:**
    ```
    git clone https://github.com/jero98772/Bioalgorithms.git
