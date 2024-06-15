@@ -26,7 +26,7 @@ Beyond Python, Bioalgorithms offers compatibility with Rust, empowering develope
 
 1. **Clone Repository:**
    ```
-   git clone https://github.com/jero98772/Bioinformatics-toolspy.git
+   git clone https://github.com/jero98772/Bioalgorithms.git
    ```
 
 2. **Set Up Virtual Environment:**
@@ -50,7 +50,7 @@ Beyond Python, Bioalgorithms offers compatibility with Rust, empowering develope
 
 ## Code Documentation
 
-For comprehensive documentation and usage guidelines, please refer to the [Bioalgorithms Documentation]([https://github.com/jero98772/Bioalgorithms/blob/main/docs/Functions_documentation.md](https://github.com/jero98772/Bioalgorithms/blob/main/docs/Functions_documentation.md). This documentation covers installation instructions, detailed explanations of available functions, code examples, and more. Whether you're a beginner exploring bioinformatics algorithms or an experienced developer seeking to optimize your workflows, the documentation serves as a valuable resource to unleash the full potential of Bioalgorithms.
+For comprehensive documentation and usage guidelines, please refer to the [Bioalgorithms Documentation](https://github.com/jero98772/Bioalgorithms/blob/main/docs/Functions_documentation.md). This documentation covers installation instructions, detailed explanations of available functions, code examples, and more. Whether you're a beginner exploring bioinformatics algorithms or an experienced developer seeking to optimize your workflows, the documentation serves as a valuable resource to unleash the full potential of Bioalgorithms.
 
 Example of a code in python using all functions:
 
