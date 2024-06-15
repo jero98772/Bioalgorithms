@@ -1,5 +1,5 @@
 # Bioalgorithms
-<p align="center"><img src="https://raw.githubusercontent.com/jero98772/Bioinformatics-toolspy/main/docs/logo.jpeg" width="500" height="500"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/jero98772/Bioalgorithms/main/docs/logo.jpeg" width="500" height="500"></p>
 
 ## Overview
 Bioalgorithms is a powerful library tailored for Python users but built in Rust, harnessing the efficiency and speed of compiled languages. With over 30 functions crafted for both bioinformatics and general programming tasks, this library integrates dynamic programming, greedy techniques, and optimized data structures such as hashmaps.
@@ -50,11 +50,11 @@ Beyond Python, Bioalgorithms offers compatibility with Rust, empowering develope
 
 ## Code Documentation
 
-For comprehensive documentation and usage guidelines, please refer to the [Bioalgorithms Documentation]([https://your-documentation-link-here](https://github.com/jero98772/Bioinformatics-toolspy/blob/main/docs/Functions_documentation.md). This documentation covers installation instructions, detailed explanations of available functions, code examples, and more. Whether you're a beginner exploring bioinformatics algorithms or an experienced developer seeking to optimize your workflows, the documentation serves as a valuable resource to unleash the full potential of Bioalgorithms.
+For comprehensive documentation and usage guidelines, please refer to the [Bioalgorithms Documentation]([https://github.com/jero98772/Bioalgorithms/blob/main/docs/Functions_documentation.md](https://github.com/jero98772/Bioalgorithms/blob/main/docs/Functions_documentation.md). This documentation covers installation instructions, detailed explanations of available functions, code examples, and more. Whether you're a beginner exploring bioinformatics algorithms or an experienced developer seeking to optimize your workflows, the documentation serves as a valuable resource to unleash the full potential of Bioalgorithms.
 
 Example of a code in python using all functions:
 
-         import bioalgorithms
+      import bioalgorithms
       print(bioalgorithms.levenshtein_distance("kitten","sitting"))
       print(bioalgorithms.sequence_aligment("AGGGCT","AGGCA",3,2))
       print(bioalgorithms.longest_commons_subsequences(["ACCGAAGG","ACCGAACC","CCACCGAAGG","GGACCGAACC"]))
